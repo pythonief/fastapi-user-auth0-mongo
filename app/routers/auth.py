@@ -2,8 +2,10 @@ from os import access
 from authlib.integrations import starlette_client
 from dotenv import dotenv_values, find_dotenv
 from fastapi import APIRouter, status
+from starlette import responses
 from starlette.requests import Request
 import requests
+from starlette.responses import RedirectResponse
 
 config = dotenv_values(find_dotenv())
 
@@ -22,6 +24,21 @@ AUTHORIZE_URL = 'https://fritzlerilan.us.auth0.com/authorize'
 CLIENT_KWARGS = {'scope': 'openid profile email'}
 
 router = APIRouter()
+
+
+@router.get('/login')
+def login():
+
+    response = requests.post(
+        url=AUTHORIZE_URL,
+        params=dict(
+            scope = CLIENT_KWARGS['scope'],
+            client_id = config.get(AUTH0_CLIENT_ID),
+            response_type = 'code',
+            redirect_uri = config.get(AUTH0_CALLBACK_URL),
+        ),
+    )
+    return RedirectResponse(response.url)
 
 
 @router.get('/callback')
